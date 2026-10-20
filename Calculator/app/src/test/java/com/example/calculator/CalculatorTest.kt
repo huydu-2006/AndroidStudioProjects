@@ -10,7 +10,7 @@ class CalculatorTest {
 
     private fun enter(text: String) = text.forEach { c ->
         when (c) {
-            '+', '−', '×', '÷' -> calc.pressOperator(c)
+            '+', '−', 'x', '/' -> calc.pressOperator(c)
             '=' -> calc.evaluate()
             else -> calc.digit(c)
         }
@@ -18,25 +18,49 @@ class CalculatorTest {
 
     @Test
     fun `adds and chains operators`() {
-        enter("12+30+5=")
+        enter("12+30+5")
+        assertEquals("12+30+5", calc.expression)
+        enter("=")
         assertEquals("47", calc.display)
     }
 
     @Test
+    fun `evaluates chained expression left to right`() {
+        enter("3−5+1=")
+        assertEquals("-1", calc.display)
+    }
+
+    @Test
     fun `subtracts and multiplies`() {
-        enter("7×8−6=")
+        enter("7x8−6=")
         assertEquals("50", calc.display)
     }
 
     @Test
+    fun `multiplication and division go before addition and subtraction`() {
+        enter("2+3x4=")
+        assertEquals("14", calc.display)
+        enter("10−6/2=")
+        assertEquals("7", calc.display)
+    }
+
+    @Test
+    fun `negative number can start the expression`() {
+        enter("−5+3=")
+        assertEquals("-2", calc.display)
+        enter("−5x3=")
+        assertEquals("-15", calc.display)
+    }
+
+    @Test
     fun `integer division truncates`() {
-        enter("7÷2=")
+        enter("7/2=")
         assertEquals("3", calc.display)
     }
 
     @Test
     fun `divide by zero shows error until next digit`() {
-        enter("5÷0=")
+        enter("5/0=")
         assertTrue(calc.hasError)
         enter("7")
         assertFalse(calc.hasError)
