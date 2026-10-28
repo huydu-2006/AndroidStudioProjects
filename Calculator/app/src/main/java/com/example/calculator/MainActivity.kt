@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
 private val buttonRows = listOf(
     listOf("C", "CE", "BS", "/"),
     listOf("7", "8", "9", "x"),
-    listOf("4", "5", "6", "−"),
+    listOf("4", "5", "6", "-"),
     listOf("1", "2", "3", "+"),
     listOf("0", ".", "="),
 )
@@ -99,7 +99,7 @@ private fun press(calc: Calculator, label: String) {
         "CE" -> calc.clearEntry()
         "BS" -> calc.backspace()
         "=" -> calc.evaluate()
-        "+", "−", "x", "/" -> calc.pressOperator(label.single())
+        "+", "-", "x", "/" -> calc.pressOperator(label.single())
         else -> calc.digit(label.single())
     }
 }
@@ -145,8 +145,8 @@ class Calculator {
     fun pressOperator(op: Char) {
         if (hasError) return
         expression = when {
-            expression.isEmpty() -> if (op == '−') "−" else display + op // "−" starts a negative number
-            expression == "−" -> expression // ignore operators until a digit follows
+            expression.isEmpty() -> if (op == '-' && display == "0") "-" else display + op // "-" starts a negative number only from a fresh zero; otherwise continue from the result
+            expression == "-" -> expression // ignore operators until a digit follows
             expression.last() in OPERATORS -> expression.dropLast(1) + op
             else -> expression + op
         }
@@ -156,14 +156,14 @@ class Calculator {
         if (hasError) return
         val expr = expression.trimEnd { it in OPERATORS }
         if (expr.isEmpty()) return
-        val negative = expr.startsWith('−')
+        val negative = expr.startsWith('-')
         val body = if (negative) expr.drop(1) else expr
-        val nums = body.split('+', '−', 'x', '/').map { it.toLongOrNull() ?: return }.toMutableList()
+        val nums = body.split('+', '-', 'x', '/').map { it.toLongOrNull() ?: return }.toMutableList()
         val ops = body.filter { it in OPERATORS }.toMutableList()
         if (ops.size != nums.size - 1) return
         if (negative) nums[0] = -nums[0]
 
-        // x and / bind tighter than + and −
+        // x and / bind tighter than + and -
         var i = 0
         while (i < ops.size) {
             if (ops[i] == 'x' || ops[i] == '/') {
@@ -210,6 +210,6 @@ class Calculator {
 
     private companion object {
         const val MAX_DIGITS = 5
-        const val OPERATORS = "+−x/"
+        const val OPERATORS = "+-x/"
     }
 }
